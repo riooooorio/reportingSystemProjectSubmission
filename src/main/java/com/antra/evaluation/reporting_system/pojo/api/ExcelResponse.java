@@ -4,21 +4,22 @@ import com.antra.evaluation.reporting_system.pojo.report.ExcelFile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import java.time.Instant;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class ExcelResponse {
-  private String fileId;
-  private String fileName;
+  private UUID fileId;
   private Long fileSize;
-  private Instant generatedTime;
+  private LocalDateTime generatedTime;
 
   public static ExcelResponse from(ExcelFile excelFile) {
     return ExcelResponse.builder()
         .fileId(excelFile.getFileId())
-        .fileName(excelFile.getFileName())
         .fileSize(excelFile.getFileSize())
         .generatedTime(excelFile.getGeneratedTime())
         .build();

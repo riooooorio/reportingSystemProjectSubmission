@@ -4,13 +4,15 @@ import lombok.Builder;
 import lombok.Getter;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Builder
 @Getter
 public class ExcelFile {
-  private final String fileId;
-  private final String fileName;
+  private final UUID fileId;
+  private final String title;
   private final Long fileSize;
-  private final Instant generatedTime;
+  private final LocalDateTime generatedTime;
   private final Path filePath;
 }

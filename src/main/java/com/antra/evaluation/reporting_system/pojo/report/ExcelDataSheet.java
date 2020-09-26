@@ -1,35 +1,31 @@
 package com.antra.evaluation.reporting_system.pojo.report;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import java.util.List;
 
-
+@Getter
+@AllArgsConstructor
 public class ExcelDataSheet {
   private String title;
   private List<ExcelDataHeader> headers;
-  private List<List<Object>> dataRows;
+  private List<ExcelDataRow> dataRows;
 
-  public String getTitle() {
-    return title;
-  }
+  @Getter
+  @AllArgsConstructor
+  public static class ExcelDataRow {
+    private List<Object> data;
 
-  public void setTitle(String title) {
-    this.title = title;
-  }
+    public Object get(Integer id) {
+      if (id == null || id >= data.size() || id < 0) {
+        throw new IllegalArgumentException("Invalid column Id provided");
+      }
+      return data.get(id);
+    }
 
-  public List<ExcelDataHeader> getHeaders() {
-    return headers;
-  }
-
-  public void setHeaders(List<ExcelDataHeader> headers) {
-    this.headers = headers;
-  }
-
-  public List<List<Object>> getDataRows() {
-    return dataRows;
-  }
-
-  public void setDataRows(List<List<Object>> dataRows) {
-    this.dataRows = dataRows;
+    public Integer size() {
+      return data.size();
+    }
   }
 }

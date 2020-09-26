@@ -1,21 +1,21 @@
 package com.antra.evaluation.reporting_system.service;
 
-import java.io.InputStream;
-import java.util.List;
-
+import com.antra.evaluation.reporting_system.pojo.api.ExcelRequest;
 import com.antra.evaluation.reporting_system.pojo.api.ExcelResponse;
-import com.antra.evaluation.reporting_system.pojo.report.ExcelData;
+import com.antra.evaluation.reporting_system.pojo.api.MultiSheetExcelRequest;
 import com.antra.evaluation.reporting_system.pojo.report.ExcelFile;
+import java.util.List;
+import java.util.UUID;
 
 public interface ExcelService {
 
-  InputStream getExcelBodyById(String id);
+  ExcelResponse createExcel(ExcelRequest request);
 
-  ExcelResponse createExcel(ExcelData data);
+  ExcelResponse createMultiSheetExcel(MultiSheetExcelRequest request);
 
-  ExcelResponse deleteExcel(String id);
+  ExcelResponse deleteExcel(UUID id);
 
-  ExcelFile getExcelFileById(String id);
+  ExcelFile getExcelFileById(UUID id);
 
   List<ExcelResponse> findAll();
 }

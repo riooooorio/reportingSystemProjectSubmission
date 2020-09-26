@@ -1,5 +1,6 @@
 package com.antra.evaluation.reporting_system;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -24,21 +25,24 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @WebMvcTest(ExcelGenerationController.class)
-public class APITest {
+public class ExcelGenerationControllerTest {
+	private static final UUID FILE_ID = UUID.randomUUID();
+
 	@MockBean
-	ExcelService excelService;
+	private ExcelService excelService;
 
 	@Autowired
 	private MockMvc mockMvc;
-	@MockBean
-	private ExcelRequest request;
 
 	@BeforeEach
 	public void configMock() {
@@ -47,63 +51,76 @@ public class APITest {
 	}
 
 	@Test
-	void testCreateExcel() throws Exception {
-		ExcelData data = new ExcelData();
-
-		ExcelResponse res =  mock(ExcelResponse.class);
-
-		when(excelService.createExcel(data)).thenReturn(res);
-
+	public void testCreateExcelBadRequest() throws Exception {
+		ExcelResponse res = createResponse();
+		when(excelService.createExcel(any())).thenReturn(res);
 		this.mockMvc
 				.perform(MockMvcRequestBuilders.post("/excel").contentType(MediaType.APPLICATION_JSON)
 						.content("{\"headers\":[\"Name\",\"Age\"], \"data\":[[\"Teresa\",\"5\"],[\"Daniel\",\"1\"]]}"))
+				.andExpect(status().is4xxClientError());
+	}
+
+	@Test
+	public void testCreateExcelSuccess() throws Exception {
+		ExcelResponse res = createResponse();
+		when(excelService.createExcel(any())).thenReturn(res);
+		this.mockMvc
+				.perform(MockMvcRequestBuilders.post("/excel").contentType(MediaType.APPLICATION_JSON)
+						.content("{\"description\":\"Sample\",\"headers\":[\"Student #\",\"Name\",\"Class\",\"Score\"],\"data\":[[\"s-001\",\"James\",\"Class-A\",\"A+\"]], \"submitter\":\"Mrs. York\"}"))
 				.andExpect(status().isOk());
 
 	}
 
 	@Test
-	void testCreateMultiSheetExcel() throws Exception {
-		ExcelData data = new ExcelData();
-
-		ExcelResponse res = mock(ExcelResponse.class);
-
-		when(excelService.createExcel(data)).thenReturn(res);
-
+	public void testCreateMultiSheetExcel() throws Exception {
+		ExcelResponse res = createResponse();
+		when(excelService.createExcel(any())).thenReturn(res);
 		this.mockMvc
 				.perform(MockMvcRequestBuilders.post("/excel").contentType(MediaType.APPLICATION_JSON)
-						.content("{\"headers\":[\"Name\",\"Age\"], \"data\":[[\"Teresa\",\"5\"],[\"Daniel\",\"1\"]]}"))
+						.content("{\"description\":\"Sample\",\"headers\":[\"Student #\",\"Name\",\"Class\",\"Score\"],\"data\":[[\"s-001\",\"James\",\"Class-A\",\"A+\"]], \"submitter\":\"Mrs. York\",\"splitBy\":\"Score\"}"))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	void testListExcels() throws Exception {
+	public void testListExcels() throws Exception {
 		List<ExcelResponse> list = new ArrayList<>();
-		list.add(new ExcelResponse("1", "1.xlsx", 10L, Instant. now()));
+		list.add(createResponse());
 		Mockito.when(excelService.findAll()).thenReturn(list);
 
 		when(excelService.findAll()).thenReturn(list);
 		this.mockMvc.perform(MockMvcRequestBuilders.get("/excel"))
-				.andExpect(MockMvcResultMatchers.jsonPath("$[0].fileId").value("1")).andExpect(status().isOk());
+				.andExpect(MockMvcResultMatchers.jsonPath("$[0].fileId").value(FILE_ID.toString()))
+				.andExpect(status().isOk());
 	} // Done
 
 	@Test
-	void testDownloadExcel() throws Exception {
-
+	public void testDownloadExcel() throws Exception {
 		String string = "hello";
-		InputStream inputStream = new ByteArrayInputStream(string.getBytes(Charset.forName("UTF-8")));
-		ExcelFile file = ExcelFile.builder().fileName("1.xlsx").build();
-
-		Mockito.when(excelService.getExcelBodyById(anyString())).thenReturn(inputStream);
-		Mockito.when(excelService.getExcelFileById(anyString())).thenReturn(file);
-		this.mockMvc.perform(MockMvcRequestBuilders.get("/excel/8/content")).andExpect(status().isOk());
+		ExcelFile file = ExcelFile.builder()
+				.title("Test File")
+				.filePath(File.createTempFile("_tmp", "").toPath())
+				.build();
+		Mockito.when(excelService.getExcelFileById(any())).thenReturn(file);
+		this.mockMvc.perform(MockMvcRequestBuilders.get("/excel/" + FILE_ID.toString() + "/content"))
+				.andExpect(status().isOk());
 
 	}
 
 	@Test
-	void testDeleteExcel() throws Exception {
-		ExcelResponse res = new ExcelResponse("1", "1.xlsx", 10L, Instant.now());
-		Mockito.when(excelService.deleteExcel(toString())).thenReturn(res);
-		this.mockMvc.perform(MockMvcRequestBuilders.delete("/excel/8")).andExpect(status().isOk());
+	public void testDeleteExcel() throws Exception {
+		ExcelResponse res = createResponse();
+		Mockito.when(excelService.deleteExcel(any())).thenReturn(res);
+		this.mockMvc.perform(MockMvcRequestBuilders.delete("/excel/" + FILE_ID.toString()))
+				.andExpect(status().isOk());
+	}
+
+	private ExcelResponse createResponse() {
+		return ExcelResponse.builder()
+				.generatedTime(LocalDateTime.now())
+				.fileSize(1457L)
+				.fileId(FILE_ID)
+				.build();
 	}
 
 }
+＀
